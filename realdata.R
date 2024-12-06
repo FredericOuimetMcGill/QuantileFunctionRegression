@@ -1,3 +1,19 @@
+## Libraries
+library(agop)
+library(pracma)
+library(expint)
+library(hypergeo)
+library(rootSolve)
+library(ggplot2)
+library(dplyr)
+library(cubature)
+library(plotly)
+library(viridisLite)
+library(htmlwidgets)
+library(HellCor)
+library(latex2exp)
+
+## Source code
 url <- "https://biostatisticien.eu/Qlm/"
 source(paste(url, "qlm.R", sep = ""))
 
@@ -20,14 +36,15 @@ df.before <- read.csv(paste(url, filebefore, sep = ""))
 df.after <- read.csv(paste(url, fileafter, sep = ""))
 
 # names (codes in fact, to guarantee anonymization) of patients 
-patient.names <- substr(colnames(df.before)[-1], 4, 6)
+patient.names <- substr(colnames(df.before)[-1], 1, 6)
+
 
 # Figure 2.1
 # plotting the two (pre- and post-treatment) empirical quantile curves for a given patient 
 # Adjust the graphical parameters
-cairo_pdf("fig1-right.pdf", width = 6.09, height = 6.33, pointsize = 10)
+cairo_pdf("fig2.1-right.pdf", width = 6.09, height = 6.33, pointsize = 10)
 par(mar = c(3.4, 4.2, 1, 1))
-patient.index <- 1
+patient.index <- 9
 grid.p <- seq(from = 0, to = 1, length = 1000)
 # Our qemp() function implements the first formula in Section 2.2.
 plot(grid.p, qemp(p = grid.p, sample = df.before[, 1], counts = df.before[, patient.index + 1]), type = "l", ylim = range(df.before[, 1]), xlab = "", ylab = "", main = "", lty = 2, axes = FALSE)
@@ -77,14 +94,14 @@ for (i in 1:nb.patients) {
 # This graph is not presented in the paper but we believe it is interesting 
 # to plot the empirical quantile curve for a given patient, as well as its 
 # associated $q_{x,i}$ version (before treatment)
-patient.index <- 1
+patient.index <- 9
 grid.p <- seq(from = 0, to = 1, length = 1000)
 plot(grid.p, qemp(p = grid.p, sample = df.before[, 1], counts = df.before[, patient.index + 1]), type = "l", ylim = range(df.before[, 1]), xlab = "p", ylab = "HU", main = paste("Patient ", patient.names[patient.index], " (before treatment)"), lty = 2)
 points(grid.p, qx[[patient.index]](grid.p), type = "l", lty = 1)
 legend("topleft", lty = 2:1, legend = c("Empirical", expression(q[opt])))
 
 # Figure 3.1, at the end of Section 3.1
-cairo_pdf("quantile-normal-random-sample.pdf", width = 10, height = 7)
+cairo_pdf("fig3.1.pdf", width = 10, height = 7)
 mu <- 0; sigma <- 1; beta <- 2; delta <- 3
 set.seed(1) # For reproduciblity purposes.
 n <- 5 # Sample size.
@@ -105,9 +122,10 @@ mtext("p", side = 1, line = 2.2, adj = 0.5, cex = 2)
 box()
 dev.off()
 
+
 # Figure 3.2 in Section 3.2
 # Left part
-cairo_pdf("fig2-left.pdf", width = 6.09, height = 6.33, pointsize = 10)
+cairo_pdf("fig3.2-left.pdf", width = 6.09, height = 6.33, pointsize = 10)
 par(mar = c(3.4, 6, 2, 0.3), mfrow = c(2, 1), las = 1)
 beta0 <- 5
 beta1 <- 1
@@ -143,7 +161,7 @@ mtext("Value", side = 1, line = 2.4, adj = 0.5, cex = 2)
 box()
 dev.off()
 # Right part
-cairo_pdf("fig2-right.pdf", width = 6.09, height = 6.33, pointsize = 10)
+cairo_pdf("fig3.2-right.pdf", width = 6.09, height = 6.33, pointsize = 10)
 par(mar = c(3.4, 6, 2, 0.3), mfrow = c(2, 1), las = 1)
 beta0 <- 0
 beta1 <- 1
@@ -233,62 +251,78 @@ upperlimit <- c(-717.5, Inf)
 # Gives a value equal (i.e., numerically close) to 1 - alpha 
 cubature::adaptIntegrate(f = integrand, lowerLimit = lowerlimit, upperLimit = upperlimit, Lalpha = Lalpha, n = n, beta0hat = beta0hat, beta1hat = beta1hat, sigma2hat = sigma2hat, muqxnp1 = muqxnp1, muqxbar = muqxbar, w = w, betahat = betahat, beta2hat = beta2hat, sigmaqxnp1 = sigmaqxnp1, sigmaqxbar = sigmaqxbar, tol = 1e-16, maxEval = 10000)$integral
 # Note that one can also use the following:
-alpha <- 0.05
-optim(par = 0.00015, fn = function(Lalpha) abs((1 - alpha) - cubature::adaptIntegrate(f = integrand, lowerLimit = lowerlimit, upperLimit = upperlimit, Lalpha = Lalpha, n = n, beta0hat = beta0hat, beta1hat = beta1hat, sigma2hat = sigma2hat, muqxnp1 = muqxnp1, muqxbar = muqxbar, w = w, betahat = betahat, beta2hat = beta2hat, sigmaqxnp1 = sigmaqxnp1, sigmaqxbar = sigmaqxbar, tol = 1e-16, maxEval = 10000)$integral), lower = 0.0001, upper = 0.0002, method = "L-BFGS-B")
-
+# alpha <- 0.05
+# optim(par = 0.00016, fn = function(Lalpha) ((1 - alpha) - cubature::adaptIntegrate(f = integrand, lowerLimit = lowerlimit, upperLimit = upperlimit, Lalpha = Lalpha, n = n, beta0hat = beta0hat, beta1hat = beta1hat, sigma2hat = sigma2hat, muqxnp1 = muqxnp1, muqxbar = muqxbar, w = w, betahat = betahat, beta2hat = beta2hat, sigmaqxnp1 = sigmaqxnp1, sigmaqxbar = sigmaqxbar, tol = 1e-16, maxEval = 10000)$integral) ^ 2, lower = 0.0001, upper = 0.0002, method = "L-BFGS-B")
 
 
 # Figure 3.3
 library("ggplot2")
 library("dplyr")
+library("latex2exp")  # Load the latex2exp package for LaTeX rendering
+
 # Define font sizes and styles
 tickSize1 <- 18
 tickSize2 <- 13
 legendSize1 <- 15
-legendKeySize <- 0.7
+legendKeySize <- 0.5
 legendSize2 <- 15
 fontSize1 <- 20
 fontSize2 <- 15
+
 # Set up the s and t grid for the plot
 s_vals <- seq(-770, -727.5, length.out = 100)
 t_vals <- seq(90, as.numeric(beta2hat * sigmaqxnp1 * 2 + 10), length.out = 100)
 grid <- expand.grid(s = s_vals, t = t_vals)
+
 # Calculate fQhat[s,t] for the grid points
 grid$z <- apply(grid, 1, function(row) {
   fQhat(row[1], row[2], n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w, betahat, beta2hat, sigmaqxnp1, sigmaqxbar)
 })
+
 # Define breaks to include 0.000 at the bottom of the legend
 legend_breaks <- c(0.000, 0.001, 0.002, 0.003)
+
 # Contour plot
 contour_plot <- ggplot(grid, aes(x = s, y = t, fill = z)) +
-    geom_tile() +
-    scale_fill_viridis_c(option = "magma", breaks = legend_breaks, limits = c(0, max_value)) +  # Adding custom breaks
-    guides(fill = guide_colorbar(title = "Density",
-                                 title.theme = element_text(size = legendSize1),
-                                 label.theme = element_text(size = legendSize1),
-                                 barwidth = unit(0.8, "lines"),  # Adjust legend bar width
-                                 barheight = unit(4, "lines"))) +
-    labs(x = expression(hat(mu)[Q[Y, n+1]]),
-         y = expression(hat(sigma)[Q[Y, n+1]])) +
-    theme_minimal(base_size = fontSize1) +
-    theme(axis.text = element_text(size = tickSize1),
-        axis.text.x = element_text(size = tickSize1, margin = margin(t = -20)),
-        axis.text.y = element_text(size = tickSize1, margin = margin(r = -20)),
-          legend.text = element_text(size = legendSize1),
-          legend.key.size = unit(legendKeySize, "cm"),
-          plot.margin = margin(10, -5, 0, 10),
-          legend.position = "right",
-          legend.box.margin = margin(0, 0, 0, 0),  # Reduced margin between plot and legend
-legend.box.spacing = unit(-0.5, "cm"),  # Removes space between plot and legend
-        legend.spacing.x = unit(0, "cm"),  # Reduce horizontal space between legend elements
-        plot.title = element_text(size = 25, face = "bold"),
-        panel.grid = element_blank(),  # Remove all grid lines
-    panel.grid.major = element_blank(),  # Just in case, remove major grid lines
-    panel.grid.minor = element_blank())
-# Save contour plot
-png("fig3.3.png", width = 4000, height = 3000, res = 300)
+  geom_raster() +
+  scale_fill_viridis_c(option = "magma", breaks = legend_breaks, limits = c(0, max_value)) +
+  guides(fill = guide_colorbar(
+    title = "Density",
+    title.theme = element_text(size = legendSize1),
+    label.theme = element_text(size = legendSize1),
+    barwidth = unit(0.8, "lines"),
+    barheight = unit(8, "lines")
+  )) +
+  labs(
+    x = TeX(r'($\mu_{\widehat{Q}_{Y,n+1}}$)'),  
+    y = TeX(r'($\sigma_{\widehat{Q}_{Y,n+1}}$)')
+  ) +
+  scale_x_continuous(breaks = seq(min(grid$s), max(grid$s), by = 10), expand = c(0, 0)) +  
+  scale_y_continuous(breaks = seq(min(grid$t), max(grid$t), by = 10), expand = c(0, 0)) +  
+  theme_minimal(base_size = fontSize1) +
+  theme(
+    axis.title.x = element_text(angle = 0, vjust = 2, hjust = 0.5),
+    axis.title.y = element_text(angle = 0, vjust = 0.5, hjust = -0.5, margin = margin(t = 0, r = -18, b = 0, l = 0)), 
+    axis.text.x = element_text(size = tickSize1, margin = margin(0)),  
+    axis.text.y = element_text(size = tickSize1, margin = margin(0)),  
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.ticks = element_line(color = "black"),
+    legend.text = element_text(size = legendSize1),
+    legend.key.size = unit(legendKeySize, "cm"),
+    plot.margin = margin(1, -8, -9, 2),  # Minimal plot margin
+    legend.position = "right",
+    legend.box.margin = margin(0, 0, 0, -10),  # Bring legend closer
+    legend.box.spacing = unit(0.3, "cm"),  # Remove additional horizontal space
+    legend.spacing.x = unit(0, "cm"),
+    plot.title = element_text(size = 25, face = "bold"),
+    panel.grid = element_blank()
+  )
+
+# Save contour plot as PDF
+cairo_pdf("fig3.3.pdf", width = 8.09, height = 6.33, pointsize = 10)
 print(contour_plot)
 dev.off()
+
 # Figure 3.3 (3d plot)
 library("plotly")
 library(viridisLite)
@@ -331,41 +365,55 @@ factor2i <- sigmaqxi / (n * sigmaqxbar)
 tickSize1 <- 18
 tickSize2 <- 13
 legendSize1 <- 15
-legendKeySize <- 0.7
+legendKeySize <- 0.5
 legendSize2 <- 15
 fontSize1 <- 20
 fontSize2 <- 15
 # Density Plot
 library(ggplot2)
 library(viridis)
+
 density_plot <- ggplot(data = expand.grid(s = seq(-120, 120, length.out = 100), t = seq(0, 150, length.out = 100)), aes(x = s, y = t)) +
-    geom_tile(aes(fill = fEhat(s, t, n, sigmahat, factor1i, factor2i, nu1hati, nu2hati))) +
-    scale_fill_viridis(option = "magma", direction = 1, discrete = FALSE) + 
-    guides(fill = guide_colorbar(title = "Density",
-                                 title.theme = element_text(size = legendSize1),
-                                 label.theme = element_text(size = legendSize1),
-                                 barwidth = unit(0.8, "lines"),  # Adjust legend bar width
-                                 barheight = unit(4, "lines"))) +
-    theme_minimal(base_size = fontSize1) +
-    theme(axis.text = element_text(size = tickSize1),
-        axis.text.x = element_text(size = tickSize1, margin = margin(t = -20)),
-        axis.text.y = element_text(size = tickSize1, margin = margin(r = -20)),
-          legend.text = element_text(size = legendSize1),
-          legend.key.size = unit(legendKeySize, "cm"),
-          plot.margin = margin(10, -5, 0, 10),
-          legend.position = "right",
-          legend.box.margin = margin(0, 0, 0, 0),  # Reduced margin between plot and legend
-legend.box.spacing = unit(-0.5, "cm"),  # Removes space between plot and legend
-        legend.spacing.x = unit(0, "cm"),  # Reduce horizontal space between legend elements
-        plot.title = element_text(size = 25, face = "bold"),
-        panel.grid = element_blank(),  # Remove all grid lines
-    panel.grid.major = element_blank(),  # Just in case, remove major grid lines
-    panel.grid.minor = element_blank()) +
-  labs(x = expression(mu[hat(E)[i]]), y = expression(sigma[hat(E)[i]]))
-png("fig3.4.png", width = 4000, height = 3000, res = 300)
+  geom_raster(aes(fill = fEhat(s, t, n, sigmahat, factor1i, factor2i, nu1hati, nu2hati))) +
+  scale_fill_viridis(option = "magma", direction = 1, discrete = FALSE) + 
+  guides(fill = guide_colorbar(
+    title = "Density",
+    title.theme = element_text(size = legendSize1),
+    label.theme = element_text(size = legendSize1),
+    barwidth = unit(0.8, "lines"),
+    barheight = unit(8, "lines")
+  )) +
+  labs(
+    x = TeX(r'($mu_{\widehat{E}_i}$)'), 
+    y = TeX(r'($\sigma_{\widehat{E}_i}$)')
+  ) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_minimal(base_size = fontSize1) +
+  theme(
+    axis.title.x = element_text(angle = 0, vjust = 2, hjust = 0.5),
+    axis.title.y = element_text(angle = 0, vjust = 0.5, hjust = -0.5, margin = margin(t = 0, r = -7, b = 0, l = 0)),
+    axis.text.x = element_text(size = tickSize1, margin = margin(0)),  
+    axis.text.y = element_text(size = tickSize1, margin = margin(0)),  
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.ticks = element_line(color = "black"),
+    legend.text = element_text(size = legendSize1),
+    legend.key.size = unit(legendKeySize, "cm"),
+    plot.margin = margin(4, -8, -9, 2),
+    legend.position = "right",
+    legend.box.margin = margin(0, 0, 0, -10),  # Increase space between plot and legend
+    legend.box.spacing = unit(0.3, "cm"),       # Further increase horizontal space
+    legend.spacing.x = unit(0, "cm"),
+    plot.title = element_text(size = 25, face = "bold"),
+    panel.grid = element_blank()
+  )
+
+# Save density plot as PDF
+cairo_pdf("fig3.4.pdf", width = 8.09, height = 6.33, pointsize = 10)
 print(density_plot)
 dev.off()
-# 3D Plot
+
+# Figure 3.4 (3d plot)
 library(plotly)
 library(viridisLite)
 # Generate magma color scale from viridisLite package
@@ -427,9 +475,6 @@ plot3d <- plot_ly(
 saveWidget(plot3d, file = "fig-3.4.html", selfcontained = TRUE)
 
 
-
-
-
 # Table 4.1
 table4.1 <- cbind(res.qlm$muqx, res.qlm$sigmaqx, res.qlm$muqy, res.qlm$sigmaqy) 
 rownames(table4.1) <- 1:nrow(table4.1)
@@ -452,8 +497,9 @@ round(head(table4.2), 2)
 
 set.seed(1); HellCor::HellCor(muresid, sigmaresid, pval.comp = TRUE)$p.value
 
+
 # Figure 4.1 in Section 4
-cairo_pdf("residuals_scatterplot.pdf", width = 10, height = 7)
+cairo_pdf("fig4.1.pdf", width = 10, height = 7)
 par(mar = c(3.4, 6, 2, 0.3), las = 1)
 plot(table4.2, pch = 20, col = "blue", xlab = "", ylab = "", cex.lab = 2, axes = FALSE)
 text(x = table4.2[, 1], y = table4.2[, 2], labels = rownames(table4.2), adj = 1.2, cex = 1.5)
@@ -467,6 +513,7 @@ mtext(expression(mu[hat(epsilon)[i]]), side = 1, line = 2.2, adj = 0.5, cex = 2)
 text(-135, 54, expression(hat(beta)), cex = 2)
 box()
 dev.off()
+
 
 # Table 4.3 in Section 4
 factor1 <- 1 - (1 / res.qlm$n) - (res.qlm$muqx - mean(res.qlm$muqx)) ^ 2 / (n * res.qlm$w)
@@ -487,26 +534,49 @@ for (i in 1:res.qlm$n) {
 }
 table4.3 <- round(matrix(res.qlm.pvals, ncol = 4), 4)
 
+
 # Figure 4.2 in Section 4
-cairo_pdf("residuals_barplot.pdf", width = 12, height = 7)
-par(mar = c(3.4, 7, 2, 0.3), las = 0)
-# Store the x-positions of the bars returned by barplot
-x_pos <- barplot(height = -log(res.qlm.pvals, 10), space = 0.2, col = "skyblue", ylim = c(0, 2.5), axes = FALSE, cex.names = 1.0, names.arg = rep("", 44))
+cairo_pdf("fig4.2.pdf", width = 16, height = 7)
+par(mar = c(3.2, 5, 1.5, 0.5), xaxs = "i", family = "Arial Narrow")
+# Compute the bar heights
+bar_heights <- -log(res.qlm.pvals, 10)
+num_bars <- length(bar_heights)
+# Create the barplot with specified width and space
+x_pos <- barplot(
+  height = bar_heights,
+  width = 0.8,
+  space = 0.25,
+  col = "skyblue",
+  ylim = c(0, 2.5),
+  xlim = c(0, num_bars),
+  axes = FALSE,
+  names.arg = rep("", num_bars)
+)
 # Add the red dashed horizontal line
-abline(h = 2, lty = 2, col = "red")
+abline(h = 2, lty = 2, col = "red", lwd = 2)
 # Add y-axis
-axis(2, mgp = c(2, 0.7, 0), cex.axis = 2)
-# Add custom x-axis with all labels using the positions from barplot
-axis(1, at = x_pos, labels = 1:44, cex.axis = 0.9, gap.axis = 0)
-# Add y-axis label
-mtext(expression(-Log[10]("p-value")), side = 2, line = 4, adj = 0.5, cex = 2)
+axis(2, mgp = c(2, 0.7, 0), cex.axis = 2.5)
+# Rotate x-axis labels at 90 degrees and move them closer to ticks
+axis(1, at = x_pos, labels = FALSE)
+text(
+  x = x_pos,
+  y = par("usr")[3] - 0.06,
+  labels = 1:num_bars,
+  srt = 90,
+  adj = 1,
+  xpd = TRUE,
+  cex = 2.3,
+  family = "Arial Narrow"
+)
+# Add y-axis label closer to the axis
+mtext(expression(-Log[10]("p-value")), side = 2, line = 2.5, adj = 0.5, cex = 2.5)
 # Draw box around the plot
 box()
 dev.off()
 
 # Figure 4.3 in Section 4
 # Left part
-cairo_pdf("q_barycenter.pdf", width = 10, height = 7)
+cairo_pdf("fig4.3-left.pdf", width = 10, height = 7)
 # Compute the average quantile functions
 threshold <- -716
 aveqx <- function(x) qnorm(x, mean = mean(res.qlm$muqx[res.qlm$muqx < -716]), sd = mean(res.qlm$sigmaqx[res.qlm$muqx < threshold]))
@@ -534,7 +604,7 @@ mtext("p", side = 1, line = 2.2, adj = 0.5, cex = 2)
 box()
 dev.off()
 # Right part
-cairo_pdf("q_barycenter_diff.pdf", width = 10, height = 7)
+cairo_pdf("fig4.3-right.pdf", width = 10, height = 7)
 diff <- function(x) aveqy(x) - aveqx(x)
 par(mar = c(3.4, 5.5, 3, 1.2), las = 1, xaxs = "i", yaxs = "i")
 curve(diff, lty = 1, xlim = c(0, 1), ylim = c(-15, 35), n = 1000, axes = FALSE, cex.axis = 2, cex.lab = 2, xlab = "", ylab = "", main = "Average difference after/before treatment", cex.main = 2)
@@ -557,6 +627,7 @@ dev.off()
 
 
 # Figure 4.4
+patient.index <- 13
 cairo_pdf("fig4.4-top.pdf", width = 8.09, height = 6.33, pointsize = 10)
 par(mar = c(4, 8, 3, 1))
 #par(mar = c(3.8, 7.2, 2, 1))
@@ -597,6 +668,7 @@ segments(x0 = mu2, y0 = 0, x1 = mu2, y1 = dnorm(mu2, mean = mu2, sd = sd2), lty 
 segments(x0 = mu3, y0 = 0, x1 = mu3, y1 = dnorm(mu3, mean = mu3, sd = sd3), lty = 3)
 dev.off()
 
+
 # Figure 4.5
 patient.index <- 13
 muqxnp1 <- res.qlm$muqx[patient.index]
@@ -626,7 +698,7 @@ legendSize2 <- 15
 fontSize1 <- 20
 fontSize2 <- 15
 contour_plot <- ggplot(grid, aes(x = s, y = t, fill = z)) +
-  geom_tile() +
+  geom_raster() +
   scale_fill_viridis_c(option = "magma", breaks = legend_breaks, limits = c(0, max_value + 0.00001)) +  
   guides(fill = guide_colorbar(
     title = "Density",
@@ -635,11 +707,15 @@ contour_plot <- ggplot(grid, aes(x = s, y = t, fill = z)) +
     barwidth = unit(0.8, "lines"),
     barheight = unit(8, "lines")
   )) +
-  labs(title = paste("Patient", patient.names[patient.index]), x = expression(mu), y = expression(sigma)) +
+  labs(
+    x = TeX(r'($\mu$)'), 
+    y = TeX(r'($\sigma$)')
+  ) +
   scale_x_continuous(breaks = seq(min(grid$s), max(grid$s), by = 10), expand = c(0, 0)) +  
   scale_y_continuous(breaks = seq(min(grid$t), max(grid$t), by = 10), expand = c(0, 0)) +  
   theme_minimal(base_size = fontSize1) +
   theme(
+    axis.title.x = element_text(angle = 0, vjust = 2, hjust = 0.5),
     axis.title.y = element_text(angle = 0, vjust = 0.5, hjust = -0.5), 
     axis.text.x = element_text(size = tickSize1, margin = margin(0)),  
     axis.text.y = element_text(size = tickSize1, margin = margin(0)),  
@@ -647,26 +723,42 @@ contour_plot <- ggplot(grid, aes(x = s, y = t, fill = z)) +
     axis.ticks = element_line(color = "black"),
     legend.text = element_text(size = legendSize1),
     legend.key.size = unit(legendKeySize, "cm"),
-    plot.margin = margin(10, -5, 0, 10),
+    plot.margin = margin(4, -8, -6, 2),
     legend.position = "right",
-    legend.box.margin = margin(0, 15, 0, 0),  # Increase space between plot and legend
-    legend.box.spacing = unit(1, "cm"),       # Further increase horizontal space
-    legend.spacing.x = unit(0.5, "cm"),
+    legend.box.margin = margin(0, 0, 0, -10),  # Increase space between plot and legend
+    legend.box.spacing = unit(0.3, "cm"),       # Further increase horizontal space
+    legend.spacing.x = unit(0, "cm"),
     plot.title = element_text(size = 25, face = "bold"),
     panel.grid = element_blank()
   ) +
-  geom_point(aes(x = res.qlm$muqx[patient.index], y = res.qlm$sigmaqx[patient.index]), shape = 17, color = "black", size = 4) + # filled triangle pointing upwards
-  geom_point(aes(x = res.qlm$muqy[patient.index], y = res.qlm$sigmaqy[patient.index]), shape = 15, color = "black", size = 4) + #  filled square
+  geom_point(aes(x = res.qlm$muqx[patient.index], y = res.qlm$sigmaqx[patient.index]), shape = 17, color = "chartreuse2", size = 4) + # filled triangle pointing upwards
+  geom_point(aes(x = res.qlm$muqy[patient.index], y = res.qlm$sigmaqy[patient.index]), shape = 15, color = "blue", size = 4) + #  filled square
   geom_point(aes(x = get("muqyfitted", envir = environment(fitted(res.qlm)[[patient.index]])), 
                  y = get("sigmaqyfitted", envir = environment(fitted(res.qlm)[[patient.index]]))), 
              shape = 3, color = "black", size = 5) # plus sign (+)
-png("fig4.5.png", width = 4000, height = 3000, res = 300)
+
+# Save contour plot as PDF
+cairo_pdf("fig4.5.pdf", width = 8.09, height = 6.33, pointsize = 10)
 print(contour_plot)
 dev.off()
 
+
 # Figure 4.6
-png("fig4.6.png", width = 4000, height = 3000, res = 300)
-plot((table4.1[,3]-table4.1[,1])[order(abs(table4.1[,3]-table4.1[,1]))], type = "h", xlab = "", ylab = expression(mu[q[y]]-mu[q[x]]), xaxt = "n")
-text(x = 1:44, y = (table4.1[,3]-table4.1[,1])[order(abs(table4.1[,3]-table4.1[,1]))] + 3 * sign((table4.1[,3]-table4.1[,1])[order(abs(table4.1[,3]-table4.1[,1]))]), labels = order(abs(table4.1[,3]-table4.1[,1])))
+cairo_pdf("fig4.6.pdf", width = 13.33, height = 10, pointsize = 10)  # width and height in inches, matching approximately to 4000x3000 pixels at 300 dpi
+par(mar = c(2, 6, 0.4, 0.4),  # Smaller margins for base plot settings
+    cex.lab = 3,           # Larger axis labels
+    cex.axis = 3)        # Larger tick labels
+plot((table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))],
+     type = "h", 
+     xlab = "", 
+     ylab = expression(mu[q[y]] - mu[q[x]]), 
+     xaxt = "n",
+     ylim = c(-150, 150))
+text(x = 1:44,
+     y = (table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))] + 
+       3 * sign((table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))]), 
+     labels = order(abs(table4.1[,3] - table4.1[,1])), 
+     cex = 1.6)  # Increase size of labels above plot lines
 abline(h = 0)
+# Close PDF device
 dev.off()

@@ -388,7 +388,8 @@ confint.qlm <- function (object, parm, level = 0.95, ...) {
     cibeta <- c(betahat / qgamma(1 - alpha / 2, n - 1, rate = n - 1), betahat / qgamma(alpha / 2, n - 1, rate = n - 1))
     a <- (1 - level) / 2
     a <- c(a, 1 - a)
-    pct <- stats:::format.perc(a, 3)
+    format.perc <- function (probs, digits) paste(format(100 * probs, trim = TRUE, scientific = FALSE, digits = digits), "%") # stats:::format.perc
+    pct <- format.perc(a, 3)
     ci <- array(NA_real_, dim = c(length(parm), 2L), dimnames = list(parm, pct))
     ci[1, ] <- cibeta0
     ci[2, ] <- cibeta1
