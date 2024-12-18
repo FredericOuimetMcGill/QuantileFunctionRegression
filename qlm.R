@@ -140,7 +140,7 @@ qopt <- function (sample, counts = NULL, d = 1) {
     Phi1One <- PhijOne(1)
     Phi2One <- PhijOne(2)
     
-    a0 <- (psi1 * Phi1One - psi0 * Phi2One) / (Phi1One - Phi0One * Phi2One)
+    a0 <- (psi1 * Phi1One - psi0 * Phi2One) / (Phi1One ^ 2 - Phi0One * Phi2One)
     a1 <- (psi0 * Phi1One - psi1 * Phi0One) / (Phi1One ^ 2 - Phi0One * Phi2One)
 
     if (a1 <= 0) stop("a1 should always be positive in function qopt()")

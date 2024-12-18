@@ -156,8 +156,8 @@ curve(dnorm(x, mean = muqy, sd = sigmaqy), add = TRUE, lty = 2)
 axis(1, mgp = c(3, 1.2, 0), cex.axis = 2) # Adjust second value to move x-axis labels
 # Add custom y-axis with specific mgp settings for y-axis
 axis(2, mgp = c(2, 0.7, 0), cex.axis = 2) # Adjust second value to move y-axis labels
-mtext("Density", side = 2, line = 4.4, adj = 0.5, cex = 2, las = 0)
-mtext("Value", side = 1, line = 2.4, adj = 0.5, cex = 2)
+mtext("Density(x)", side = 2, line = 4.4, adj = 0.5, cex = 2, las = 0)
+mtext("x", side = 1, line = 2.4, adj = 0.5, cex = 2)
 box()
 dev.off()
 # Right part
@@ -192,8 +192,8 @@ curve(dnorm(x, mean = muqy, sd = sigmaqy), add = TRUE, lty = 2)
 axis(1, mgp = c(3, 1.2, 0), cex.axis = 2) # Adjust second value to move x-axis labels
 # Add custom y-axis with specific mgp settings for y-axis
 axis(2, mgp = c(2, 0.7, 0), cex.axis = 2) # Adjust second value to move y-axis labels
-mtext("Density", side = 2, line = 4.4, adj = 0.5, cex = 2, las = 0)
-mtext("Value", side = 1, line = 2.4, adj = 0.5, cex = 2)
+mtext("Density(x)", side = 2, line = 4.4, adj = 0.5, cex = 2, las = 0)
+mtext("x", side = 1, line = 2.4, adj = 0.5, cex = 2)
 box()
 dev.off()
 
@@ -384,8 +384,8 @@ density_plot <- ggplot(data = expand.grid(s = seq(-120, 120, length.out = 100), 
     barheight = unit(8, "lines")
   )) +
   labs(
-    x = TeX(r'($mu_{\widehat{E}_i}$)'), 
-    y = TeX(r'($\sigma_{\widehat{E}_i}$)')
+    x = TeX(r'($mu_{\widehat{E}_{10}}$)'), 
+    y = TeX(r'($\sigma_{\widehat{E}_{10}}$)')
   ) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
@@ -447,11 +447,11 @@ plot3d <- plot_ly(
     layout(
       scene = list(
         xaxis = list(
-          title = list(text = '$\\hat{\\sigma}_{E_i}$', standoff = 30),  # Proper LaTeX for sigma with hat and subscripts
+          title = list(text = '$\\hat{\\sigma}_{E_{10}}$', standoff = 30),  # Proper LaTeX for sigma with hat and subscripts
           titlefont = list(size = 12)
         ),
         yaxis = list(
-          title = list(text = '$\\hat{\\mu}_{E_i}$', standoff = 30),   # Proper LaTeX for mu with hat and subscripts
+          title = list(text = '$\\hat{\\mu}_{E_{10}}$', standoff = 30),   # Proper LaTeX for mu with hat and subscripts
           titlefont = list(size = 12)
         ),
         zaxis = list(
@@ -508,8 +508,8 @@ abline(h = coef(res.qlm)["betahat"], lty = 2)
 axis(1, mgp = c(3, 1.2, 0), cex.axis = 2) # Adjust second value to move x-axis labels
 # Add custom y-axis with specific mgp settings for y-axis
 axis(2, mgp = c(2, 0.7, 0), cex.axis = 2) # Adjust second value to move y-axis labels
-mtext(expression(sigma[hat(epsilon)[i]]), side = 2, line = 4, adj = 0.5, cex = 2)
-mtext(expression(mu[hat(epsilon)[i]]), side = 1, line = 2.2, adj = 0.5, cex = 2)
+mtext(expression(sigma[hat(e)[i]]), side = 2, line = 4, adj = 0.5, cex = 2)
+mtext(expression(mu[hat(e)[i]]), side = 1, line = 2.2, adj = 0.5, cex = 2)
 text(-135, 54, expression(hat(beta)), cex = 2)
 box()
 dev.off()
@@ -575,12 +575,13 @@ box()
 dev.off()
 
 # Figure 4.3 in Section 4
+mean(res.qlm$muqy[res.qlm$muqx < threshold] - res.qlm$muqx[res.qlm$muqx < threshold] > 0)
 # Left part
 cairo_pdf("fig4.3-left.pdf", width = 10, height = 7)
 # Compute the average quantile functions
-threshold <- -716
-aveqx <- function(x) qnorm(x, mean = mean(res.qlm$muqx[res.qlm$muqx < -716]), sd = mean(res.qlm$sigmaqx[res.qlm$muqx < threshold]))
-aveqy <- function(x) qnorm(x, mean = mean(res.qlm$muqy[res.qlm$muqx < -716]), sd = mean(res.qlm$sigmaqy[res.qlm$muqx < threshold]))
+threshold <- -746.4
+aveqx <- function(x) qnorm(x, mean = mean(res.qlm$muqx[res.qlm$muqx < threshold]), sd = mean(res.qlm$sigmaqx[res.qlm$muqx < threshold]))
+aveqy <- function(x) qnorm(x, mean = mean(res.qlm$muqy[res.qlm$muqx < threshold]), sd = mean(res.qlm$sigmaqy[res.qlm$muqx < threshold]))
 # Adjust the graphical parameters
 par(mar = c(3.4, 7, 3, 1), las = 1)
 curve(aveqx, lty = 1, xlim = c(0, 1), ylim = c(-1023, -200), n = 1000, axes = FALSE, cex.axis = 2, cex.lab = 2, xlab = "", ylab = "", main = "Average quantile functions", cex.main = 2)
