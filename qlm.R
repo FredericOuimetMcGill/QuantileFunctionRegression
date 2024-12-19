@@ -91,7 +91,7 @@ PhijOne <- function(j) {
 }
 
 # Function needed by qopt() below
-# See Proposition A.1
+# See Proposition 6.1
 PhijTrunc <- function(j, b) {
     res <- if (j %% 2) -uppergamma(j / 2 + 0.5, qnorm(b) ^ 2 / 2) else gamma(j / 2 + 0.5) + sign(b - 0.5) * lowergamma(j / 2 + 0.5, qnorm(b) ^ 2 / 2)
     return(2 ^ ((j / 2) - 1) * res / sqrt(pi))
@@ -128,7 +128,7 @@ qopt <- function (sample, counts = NULL, d = 1) {
     
     n.current <- n.previous <- 0
     psi0 <- psi1 <- 0
-    # See Remark A.1
+    # See Remark 6.1
     for (l in 1:K) {
         n.current <- n.current + counts[l]
         psi0 <- psi0 + sample[l] * (PhijTrunc(0, n.current / N) - PhijTrunc(0, n.previous / N))
@@ -181,7 +181,7 @@ dbetahatML <- function(u, n, beta) {
     return(res)    
 }
 
-# See Definition 3.7
+# See Definition 3.8
 dsigma2hat <- function(u, n, sigma2) {
     res <- (n - 2) * dchisq((n - 2) * u / sigma2, df = n - 2) / sigma2
     return(res)
@@ -208,7 +208,7 @@ dbeta2hat <- function(u, n, beta, sigmaqxbar, beta2) {
     res[u < 0] <- res[u < 0] * Gammabar(n - 1, pmax(0, -n * tmp * (u[u < 0])))
     return(res / beta)    
 }
-# See Definition 3.7 (or Propostion 3.4)
+# See Definition 3.8 (or Propostion 3.4)
 dbetahat <- function(u, n, beta) {
     cte <- (n - 1) / n
     res <- cte * dbetahatML(cte *  u, n, beta)
@@ -295,17 +295,17 @@ qlm.fit <- function (muqx, u, sigmaqx, s) {
     # Proposition 3.2
     beta1hat <- (mean(u * muqx) - ubar * muqxbar) / w # same as beta1hatML
     beta0hat <- ubar - beta1hat * muqxbar # same as beta0hatML
-    # Definition 3.7 and Proposition 3.2
+    # Definition 3.8 and Proposition 3.2
     sigma2hat <- sum((u - beta0hat - beta1hat * muqx) ^ 2) / (n - 2)
 
     mn <- min(s / sigmaqx)
-    # Definition 3.7 and Proposition 3.2
+    # Definition 3.8 and Proposition 3.2
     beta2hat <- (n * mn - sbar / sigmaqxbar) / (n - 1)
     betahat <- n * (sbar - mn * sigmaqxbar) / (n - 1)
 
     z$coefficients <- c("beta0hat" = beta0hat, "beta1hat" = beta1hat, "beta2hat" = beta2hat, "sigma2hat" = sigma2hat, "betahat" = betahat)
 
-    # See Remark B.2
+    # See Remark 3.9
     sebeta2hat <- betahat / (sqrt(n * (n - 1)) * sigmaqxbar)
 
     # See Proposition 3.2 and Proposition 3.4
@@ -380,7 +380,7 @@ confint.qlm <- function (object, parm, level = 0.95, ...) {
 
     se <- object$se
 
-    # See Corollary 3.6
+    # See Corollary 3.5
     cibeta0 <- beta0hat + c(-1, 1) * qt(1 - alpha / 2, n - 2) * se["beta0hat"]
     cibeta1 <- beta1hat + c(-1, 1) * qt(1 - alpha / 2, n - 2) * se["beta1hat"]
     cisigma2 <- (n - 2) * sigma2hat * (1 / c(qchisq(1 - alpha / 2, n - 2), qchisq(alpha / 2, n - 2)))
@@ -483,14 +483,14 @@ predict.qlm <- function(object, newdata) {
     return(list(fit = predictor))
 }
 
-# Proposition 3.7
+# Proposition 3.6
 fmuQhat <- function(s, n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w) {
     res <- dnorm(s, mean = beta0hat + muqxnp1 * beta1hat, sd = sqrt(sigma2hat * (1 + (muqxnp1 - muqxbar) ^ 2 / w) / n))
     return(res)    
 }
 
 # used in function fsigmaQhat() below
-# see Proposition 3.7
+# see Proposition 3.6
 # regularized lower incomplete gamma function
 # \bar{\gamma}(a, b) = \frac{1}{\Gamma(a)} \int_0^b t^{a-1}e^{-t}dt, a>0, b\in\mathbb{R}
 gammabar <- function(a, b) {
@@ -501,7 +501,7 @@ gammabar <- function(a, b) {
 }
 
 
-# Proposition 3.7
+# Proposition 3.6
 fsigmaQhat <- function(t, n, betahat, beta2hat, sigmaqxnp1, sigmaqxbar) {
     tmp1 <- sigmaqxbar / sigmaqxnp1
     tmp2 <- n * tmp1 / betahat
@@ -515,7 +515,7 @@ fsigmaQhat <- function(t, n, betahat, beta2hat, sigmaqxnp1, sigmaqxbar) {
     return(res)
 }
 
-# Proposition 3.7
+# Proposition 3.6
 fQhat <- function(s, t, n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w, betahat, beta2hat, sigmaqxnp1, sigmaqxbar) {
     tmp1 <- fmuQhat(s, n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w)
     tmp2 <- fsigmaQhat(t, n, betahat, beta2hat, sigmaqxnp1, sigmaqxbar)
@@ -523,12 +523,12 @@ fQhat <- function(s, t, n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w, b
     return(res)
 }
 
-# Proposition 3.8
+# Proposition 3.7
 fmuE <- function(s, sigmahat, factor1i) {
     res <- dnorm(s, mean = 0, sd =  sigmahat * sqrt(factor1i))
     return(res)
 }
-# Proposition 3.8
+# Proposition 3.7
 fsigmaE <- function(t, n, factor2i, nu1hati, nu2hati) {
     thetahat <- 1 / (1 / nu2hati - 1 / nu1hati)
     term1 <- factor2i * dgamma(t, shape = n - 1, scale = nu2hati)
@@ -536,7 +536,7 @@ fsigmaE <- function(t, n, factor2i, nu1hati, nu2hati) {
     res <- term1 + term2
     return(res)
 }
-# Proposition 3.8
+# Proposition 3.7
 fEhat <- function(s, t, n, sigmahat, factor1i, factor2i, nu1hati, nu2hati) {
     tmp1 <- fmuE(s, sigmahat, factor1i)
     tmp2 <- fsigmaE(t, n, factor2i, nu1hati, nu2hati)

@@ -212,7 +212,7 @@ res.qlm$muqxbar
 res.qlm$sigmaqxbar
 res.qlm$w
 
-# Numerical verification of the L_{\alpha} values provided after Proposition 3.7
+# Numerical verification of the L_{\alpha} values provided after Proposition 3.6
 # This is also needed for Figure 3.3 below
 integrand <- function(x, Lalpha, n, beta0hat, beta1hat, sigma2hat, muqxnp1, muqxbar, w, betahat, beta2hat, sigmaqxnp1, sigmaqxbar) {
     s <- x[1]
@@ -575,6 +575,7 @@ box()
 dev.off()
 
 # Figure 4.3 in Section 4
+threshold <- -746.4
 mean(res.qlm$muqy[res.qlm$muqx < threshold] - res.qlm$muqx[res.qlm$muqx < threshold] > 0)
 # Left part
 cairo_pdf("fig4.3-left.pdf", width = 10, height = 7)
@@ -614,14 +615,22 @@ axis(1, mgp = c(3, 1.2, 0), cex.axis = 2) # Adjust second value to move x-axis l
 axis(2, mgp = c(2, 0.7, 0), cex.axis = 2) # Adjust second value to move y-axis labels
 mtext("HU", side = 2, line = 4.2, adj = 0.5, cex = 2)
 mtext("p", side = 1, line = 2.2, adj = 0.5, cex = 2)
+q0 <- uniroot(function(x) diff(x) - 0, lower = 10^-10, upper = 1-10^-10)$root
 q10 <- uniroot(function(x) diff(x) - 10, lower = 10^-10, upper = 1-10^-10)$root
 q20 <- uniroot(function(x) diff(x) - 20, lower = 10^-10, upper = 1-10^-10)$root
+q30 <- uniroot(function(x) diff(x) - 30, lower = 10^-10, upper = 1-10^-10)$root
+segments(x0 = q0, y0 = -15, x1 = q0, y1 = 0, lty = 2)
 segments(x0 = q10, y0 = -15, x1 = q10, y1 = 10, lty = 2)
 segments(x0 = q20, y0 = -15, x1 = q20, y1 = 20, lty = 2)
+segments(x0 = q30, y0 = -15, x1 = q30, y1 = 30, lty = 2)
+segments(x0 = 0, y0 = 0, x1 = q0, y1 = 0, lty = 2)
 segments(x0 = 0, y0 = 10, x1 = q10, y1 = 10, lty = 2)
 segments(x0 = 0, y0 = 20, x1 = q20, y1 = 20, lty = 2)
-mtext(round(q10, 2), side = 1, line = -1.1, adj = q10 - 0.04, cex = 2)
-mtext(round(q20, 2), side = 1, line = -1.1, adj = q20 - 0.01, cex = 2)
+segments(x0 = 0, y0 = 30, x1 = q30, y1 = 30, lty = 2)
+mtext(round(q0, 2), side = 1, line = -1.1, adj = q0 + 0.01, cex = 2)
+mtext(round(q10, 2), side = 1, line = -1.1, adj = q10 + 0.03, cex = 2)
+mtext(round(q20, 2), side = 1, line = -1.1, adj = q20 - 0.03, cex = 2)
+mtext(round(q30, 2), side = 1, line = -1.1, adj = q30 - 0.01, cex = 2)
 clip(0, 1, -15, 35)
 box()
 dev.off()
@@ -741,25 +750,4 @@ contour_plot <- ggplot(grid, aes(x = s, y = t, fill = z)) +
 # Save contour plot as PDF
 cairo_pdf("fig4.5.pdf", width = 8.09, height = 6.33, pointsize = 10)
 print(contour_plot)
-dev.off()
-
-
-# Figure 4.6
-cairo_pdf("fig4.6.pdf", width = 13.33, height = 10, pointsize = 10)  # width and height in inches, matching approximately to 4000x3000 pixels at 300 dpi
-par(mar = c(2, 6, 0.4, 0.4),  # Smaller margins for base plot settings
-    cex.lab = 3,           # Larger axis labels
-    cex.axis = 3)        # Larger tick labels
-plot((table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))],
-     type = "h", 
-     xlab = "", 
-     ylab = expression(mu[q[y]] - mu[q[x]]), 
-     xaxt = "n",
-     ylim = c(-150, 150))
-text(x = 1:44,
-     y = (table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))] + 
-       3 * sign((table4.1[,3] - table4.1[,1])[order(abs(table4.1[,3] - table4.1[,1]))]), 
-     labels = order(abs(table4.1[,3] - table4.1[,1])), 
-     cex = 1.6)  # Increase size of labels above plot lines
-abline(h = 0)
-# Close PDF device
 dev.off()
